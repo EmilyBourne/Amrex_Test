@@ -110,8 +110,16 @@ cropDomain(const amrex::Box& simulation_domain, const amrex::RealBox& rb,
     // Coarsen the domain the requested number of times
     amrex::BoxList final_domain;
     amrex::Box domain = simulation_domain;
-    for (int i(0); i<ncoarsen; ++i)
-        domain.coarsen(ref_ratio);
+    if (ncoarsen > 0)
+    {
+        for (int i(0); i<ncoarsen; ++i)
+            domain.coarsen(ref_ratio);
+    }
+    else
+    {
+        for (int i(0); i<-ncoarsen; ++i)
+            domain.refine(ref_ratio);
+    }
 
     // Split the coarsened domain into boxes of size 1 which are
     // kept or removed depending on how it is cropped

@@ -38,6 +38,8 @@ int main (int argc, char* argv[])
             pp.query("n_coarsen", n_coarsen);
             pp.query("solve", solve);
         }
+        AMREX_ASSERT(n_levels >= 1);
+        AMREX_ASSERT(n_coarsen >= 1);
 
         Vector<Geometry> geom;
         Vector<BoxArray> grids;
@@ -65,7 +67,7 @@ int main (int argc, char* argv[])
             domain.refine(ref_ratio);
             geom_fine.define(domain, rb, CoordSys::cartesian, is_periodic);
             BoxArray grids_fine(cropDomain(domain_coarse, rb, is_periodic,
-                        refine_level, n_coarsen, 0.8, 1.0));
+                        refine_level, n_coarsen-refine_level, 0.8, 1.0));
             grids_fine.maxSize(max_grid_size);
             dmap_fine.define(grids_fine);
             geom.push_back(geom_fine);
