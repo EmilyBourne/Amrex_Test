@@ -122,7 +122,7 @@ int main (int argc, char* argv[])
             factory.push_back(new EBFArrayBoxFactory(eb_level, geom[i], grids[i], dmap[i], ng_ebs, ebs));
             q  .push_back(MultiFab(grids[i], dmap[i], 1, 0, MFInfo(), *factory[i]));
             phi.push_back(MultiFab(grids[i], dmap[i], 1, 0, MFInfo(), *factory[i]));
-            InitData(q[i]);
+            InitData(geom[i], q[i]);
         }
 
         LPInfo info;
