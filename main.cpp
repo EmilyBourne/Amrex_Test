@@ -61,8 +61,7 @@ int main (int argc, char* argv[])
         domain = domain_coarse;
         grids[0].define(domain);
         grids[0].maxSize(max_grid_size);
-        domain.grow(-7*n_cell/16);   // fine level cover the middle of the coarse domain
-        domain.growHi(Direction::x, -n_cell/8);
+        domain.growLo(Direction::x, -5*n_cell/8);
         domain.refine(ref_ratio);
         grids[1].define(domain);
         grids[1].maxSize(max_grid_size);
