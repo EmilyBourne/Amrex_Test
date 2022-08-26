@@ -26,6 +26,8 @@ int main (int argc, char* argv[])
         int ref_ratio = 2;
         int n_coarsen = 2;
         int solve = 1;
+        double rmin = -1;
+        double rmax = -1;
 
         // read parameters
         {
@@ -37,43 +39,61 @@ int main (int argc, char* argv[])
             pp.query("n_levels", n_levels);
             pp.query("n_coarsen", n_coarsen);
             pp.query("solve", solve);
+            pp.query("rmin", rmin);
+            pp.query("rmax", rmax);
         }
         AMREX_ASSERT(n_levels >= 1);
         AMREX_ASSERT(n_coarsen >= 1);
 
-        Vector<Geometry> geom;
-        Vector<BoxArray> grids;
-        Vector<DistributionMapping> dmap;
+        Vector<Geometry> geom(n_levels);
+        Vector<BoxArray> grids(n_levels);
+        Vector<DistributionMapping> dmap(n_levels);
         RealBox rb({AMREX_D_DECL(0.,0.,0.)}, {AMREX_D_DECL(1.,1.,1.)});
+        Array<int,AMREX_SPACEDIM> is_periodic{AMREX_D_DECL(1,1,1)};
+        Geometry::Setup(&rb, 0, is_periodic.data());
         Box domain_coarse(IntVect{AMREX_D_DECL(0,0,0)},
                    IntVect{AMREX_D_DECL(n_cell-1,n_cell-1,n_cell-1)});
         Box domain = domain_coarse;
-        Array<int,AMREX_SPACEDIM> is_periodic{AMREX_D_DECL(1,1,1)};
-        {
-            Geometry geom_coarse;
-            geom_coarse.define(domain_coarse, rb, CoordSys::cartesian, is_periodic);
-            geom.push_back(geom_coarse);
+        geom[0].define(domain);
+        domain.refine(ref_ratio);
+        geom[1].define(domain);
 
-            BoxArray grid_coarse(domain_coarse); // define the BoxArray to be a single grid
-            grid_coarse.maxSize(max_grid_size); // chop domain up into boxes with length max_Grid_size
-            grids.push_back(grid_coarse);
+        domain = domain_coarse;
+        grids[0].define(domain);
+        grids[0].maxSize(max_grid_size);
+        domain.grow(-7*n_cell/16);   // fine level cover the middle of the coarse domain
+        domain.growHi(Direction::x, -n_cell/8);
+        domain.refine(ref_ratio);
+        grids[1].define(domain);
+        grids[1].maxSize(max_grid_size);
 
-            dmap.push_back(DistributionMapping(grids[0])); // create a processor distribution mapping given the BoxARray
-        }
-        for (int refine_level(1); refine_level < n_levels; ++refine_level)
-        {
-            Geometry geom_fine;
-            DistributionMapping dmap_fine;
-            domain.refine(ref_ratio);
-            geom_fine.define(domain, rb, CoordSys::cartesian, is_periodic);
-            BoxArray grids_fine(cropDomain(domain_coarse, rb, is_periodic,
-                        refine_level, n_coarsen-refine_level, 0.8, 1.0));
-            grids_fine.maxSize(max_grid_size);
-            dmap_fine.define(grids_fine);
-            geom.push_back(geom_fine);
-            grids.push_back(grids_fine);
-            dmap.push_back(dmap_fine);
-        }
+        dmap[0].define(grids[0]);
+        dmap[1].define(grids[1]);
+        //{
+        //    Geometry geom_coarse;
+        //    geom_coarse.define(domain_coarse, rb, CoordSys::cartesian, is_periodic);
+        //    geom.push_back(geom_coarse);
+
+        //    BoxArray grid_coarse(domain_coarse); // define the BoxArray to be a single grid
+        //    grid_coarse.maxSize(max_grid_size); // chop domain up into boxes with length max_Grid_size
+        //    grids.push_back(grid_coarse);
+
+        //    dmap.push_back(DistributionMapping(grids[0])); // create a processor distribution mapping given the BoxARray
+        //}
+        //for (int refine_level(1); refine_level < n_levels; ++refine_level)
+        //{
+        //    Geometry geom_fine;
+        //    DistributionMapping dmap_fine;
+        //    domain.refine(ref_ratio);
+        //    geom_fine.define(domain, rb, CoordSys::cartesian, is_periodic);
+        //    BoxArray grids_fine(cropDomain(domain_coarse, rb, is_periodic,
+        //                refine_level, n_coarsen-refine_level, rmin, rmax));
+        //    grids_fine.maxSize(max_grid_size);
+        //    dmap_fine.define(grids_fine);
+        //    geom.push_back(geom_fine);
+        //    grids.push_back(grids_fine);
+        //    dmap.push_back(dmap_fine);
+        //}
 
         int required_coarsening_level = 0; // typically the same as the max AMR level index
         int max_coarsening_level = 100;    // typically a huge number so MG coarsens as much as possible
