@@ -1,11 +1,35 @@
 amrex.fpe_trap_invalid=1
 
-verbose = 2
+
+## working
+#n_cell = 8
+#max_grid_size = 8
+#ref_ratio = 4
+#
+# not working (residual explodes)
 n_cell = 16
 max_grid_size = 16
+ref_ratio = 4
+#
+## working
+#n_cell = 16
+#max_grid_size = 16
+#ref_ratio = 2
+#
+## not working (seg fault)
+## # /home/emily/Code/Poisson/Amrex_Test/../amrex/Src/Base/AMReX_MFIter.H:210
+#n_cell = 8
+#max_grid_size = 8
+#ref_ratio = 8
+
+
+
+
+
+verbose = 2
+bottom_verbose = 2
 
 n_levels = 2
-ref_ratio = 4
 n_coarsen = 1
 
 # Set to 0 to see grid (errors in solver)
